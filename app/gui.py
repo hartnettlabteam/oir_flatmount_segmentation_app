@@ -12,6 +12,42 @@ from tkinter import filedialog, messagebox, scrolledtext
 from infer import run_ensemble_folder
 
 
+class ToolTip:
+    def __init__(self, widget: tk.Widget, text: str) -> None:
+        self.widget = widget
+        self.text = text
+        self.tipwindow = None
+        self.widget.bind("<Enter>", self._show)
+        self.widget.bind("<Leave>", self._hide)
+
+    def _show(self, _event=None) -> None:
+        if self.tipwindow is not None:
+            return
+        x = self.widget.winfo_rootx() + 16
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 8
+        self.tipwindow = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(
+            tw,
+            text=self.text,
+            justify=tk.LEFT,
+            bg="#2A2A2A",
+            fg="#F0F0F0",
+            relief=tk.SOLID,
+            borderwidth=1,
+            padx=8,
+            pady=6,
+            wraplength=460,
+        )
+        label.pack()
+
+    def _hide(self, _event=None) -> None:
+        if self.tipwindow is not None:
+            self.tipwindow.destroy()
+            self.tipwindow = None
+
+
 class _QueueWriter:
     def __init__(self, q: "queue.Queue[str]") -> None:
         self.q = q
@@ -88,9 +124,12 @@ class OIRGui(tk.Tk):
             "selectcolor": "#1E1E1E",
         }
 
-        tk.Label(self, text="Input folder", **label_style).grid(row=0, column=0, sticky="w", padx=10, pady=10)
+        tk.Label(self, text="Input folder or image", **label_style).grid(row=0, column=0, sticky="w", padx=10, pady=10)
         tk.Entry(self, textvariable=self.input_var, **entry_style).grid(row=0, column=1, sticky="ew", padx=10, pady=10)
-        tk.Button(self, text="Browse", command=self._pick_input, **button_style).grid(row=0, column=2, padx=10, pady=10)
+        input_btns = tk.Frame(self, bg="#141414")
+        input_btns.grid(row=0, column=2, padx=10, pady=10, sticky="e")
+        tk.Button(input_btns, text="Folder", command=self._pick_input, **button_style).pack(side="left", padx=(0, 6))
+        tk.Button(input_btns, text="Image", command=self._pick_input_file, **button_style).pack(side="left")
 
         tk.Label(self, text="Output folder", **label_style).grid(row=1, column=0, sticky="w", padx=10, pady=10)
         tk.Entry(self, textvariable=self.output_var, **entry_style).grid(row=1, column=1, sticky="ew", padx=10, pady=10)
@@ -109,14 +148,30 @@ class OIRGui(tk.Tk):
         outputs_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=(4, 10))
         outputs_frame.columnconfigure((0, 1, 2, 3), weight=1)
 
-        tk.Checkbutton(outputs_frame, text="TR masks", variable=self.save_tr_masks, **checkbox_style).grid(row=0, column=0, sticky="w")
-        tk.Checkbutton(outputs_frame, text="TR overlays", variable=self.save_tr_overlays, **checkbox_style).grid(row=0, column=1, sticky="w")
-        tk.Checkbutton(outputs_frame, text="IVNV masks", variable=self.save_ivnv_masks, **checkbox_style).grid(row=1, column=0, sticky="w")
-        tk.Checkbutton(outputs_frame, text="IVNV overlays", variable=self.save_ivnv_overlays, **checkbox_style).grid(row=1, column=1, sticky="w")
-        tk.Checkbutton(outputs_frame, text="AVA masks", variable=self.save_ava_masks, **checkbox_style).grid(row=2, column=0, sticky="w")
-        tk.Checkbutton(outputs_frame, text="AVA overlays", variable=self.save_ava_overlays, **checkbox_style).grid(row=2, column=1, sticky="w")
-        tk.Checkbutton(outputs_frame, text="Metrics spreadsheet", variable=self.save_metrics, **checkbox_style).grid(row=3, column=0, sticky="w")
-        tk.Checkbutton(outputs_frame, text="Copy originals", variable=self.save_originals, **checkbox_style).grid(row=3, column=1, sticky="w")
+        info = tk.Label(
+            outputs_frame,
+            text="(i)",
+            bg="#141414",
+            fg="#B0B0B0",
+            cursor="question_arrow",
+        )
+        info.grid(row=0, column=3, sticky="e", padx=6, pady=(0, 4))
+        ToolTip(
+            info,
+            "Masks: binary black/white segmentation outputs.\n"
+            "Overlays: original image with segmented regions highlighted in color.\n"
+            "Metrics: spreadsheet with retina, IVNV, AVA areas and percentages.\n"
+            "Originals: copies of the input images saved in the output folder.",
+        )
+
+        tk.Checkbutton(outputs_frame, text="TR masks", variable=self.save_tr_masks, **checkbox_style).grid(row=1, column=0, sticky="w")
+        tk.Checkbutton(outputs_frame, text="TR overlays", variable=self.save_tr_overlays, **checkbox_style).grid(row=1, column=1, sticky="w")
+        tk.Checkbutton(outputs_frame, text="IVNV masks", variable=self.save_ivnv_masks, **checkbox_style).grid(row=2, column=0, sticky="w")
+        tk.Checkbutton(outputs_frame, text="IVNV overlays", variable=self.save_ivnv_overlays, **checkbox_style).grid(row=2, column=1, sticky="w")
+        tk.Checkbutton(outputs_frame, text="AVA masks", variable=self.save_ava_masks, **checkbox_style).grid(row=3, column=0, sticky="w")
+        tk.Checkbutton(outputs_frame, text="AVA overlays", variable=self.save_ava_overlays, **checkbox_style).grid(row=3, column=1, sticky="w")
+        tk.Checkbutton(outputs_frame, text="Metrics spreadsheet", variable=self.save_metrics, **checkbox_style).grid(row=4, column=0, sticky="w")
+        tk.Checkbutton(outputs_frame, text="Originals", variable=self.save_originals, **checkbox_style).grid(row=4, column=1, sticky="w")
 
         btn_frame = tk.Frame(self, bg="#141414")
         btn_frame.grid(row=3, column=0, columnspan=3, sticky="ew")
@@ -150,6 +205,17 @@ class OIRGui(tk.Tk):
 
     def _pick_input(self) -> None:
         path = filedialog.askdirectory(title="Select input folder")
+        if path:
+            self.input_var.set(path)
+
+    def _pick_input_file(self) -> None:
+        path = filedialog.askopenfilename(
+            title="Select input image",
+            filetypes=[
+                ("Image files", "*.png *.jpg *.jpeg *.tif *.tiff *.bmp"),
+                ("All files", "*.*"),
+            ],
+        )
         if path:
             self.input_var.set(path)
 
@@ -214,8 +280,8 @@ class OIRGui(tk.Tk):
         input_dir = self.input_var.get().strip()
         output_dir = self.output_var.get().strip()
         ensemble_dir = self._resolve_ensemble_dir()
-        if not input_dir or not os.path.isdir(input_dir):
-            messagebox.showerror("Input error", "Please select a valid input folder.")
+        if not input_dir or (not os.path.isdir(input_dir) and not os.path.isfile(input_dir)):
+            messagebox.showerror("Input error", "Please select a valid input folder or image.")
             return
         if not output_dir:
             messagebox.showerror("Output error", "Please select an output folder.")

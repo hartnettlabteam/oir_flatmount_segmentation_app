@@ -1,5 +1,4 @@
 import os
-import glob
 from typing import Dict, Tuple, Optional, List
 
 import numpy as np
@@ -57,8 +56,14 @@ def fill_holes(mask: np.ndarray) -> np.ndarray:
 
 
 def collect_image_paths(images_dir: str) -> List[str]:
-	"""Collect image paths once and deduplicate for case-insensitive filesystems."""
+	"""Collect image path(s) from a folder or single file, deduplicated."""
 	valid_ext = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
+
+	# Allow passing a single image file directly.
+	if os.path.isfile(images_dir):
+		ext = os.path.splitext(images_dir)[1].lower()
+		return [images_dir] if ext in valid_ext else []
+
 	seen = set()
 	paths: List[str] = []
 	for root, _, files in os.walk(images_dir):
@@ -200,6 +205,7 @@ def run_folder(
 	tta: bool = True,
 	min_component: int = 0,
 	thresholds_json: Optional[str] = None,
+	save_originals: bool = True,
 ):
 	device_t = resolve_device(device)
 	model, meta = load_model_from_ckpt(model_path, device_t, base_ch=base_ch, backbone=backbone)
@@ -230,9 +236,7 @@ def run_folder(
 		os.makedirs(d, exist_ok=True)
 
 	records = []
-	img_paths = []
-	for ext in ["*.png", "*.jpg", "*.jpeg", "*.tif", "*.tiff", "*.bmp", "*.PNG", "*.JPG", "*.JPEG", "*.TIF", "*.TIFF", "*.BMP"]:
-		img_paths += glob.glob(os.path.join(images_dir, "**", ext), recursive=True)
+	img_paths = collect_image_paths(images_dir)
 
 	for p in img_paths:
 		name = os.path.splitext(os.path.basename(p))[0]
@@ -430,8 +434,9 @@ def run_ensemble_folder(
 			mvo = remove_small_components(mvo, min_size=min_component)
 
 		# Save original image
-		import shutil
-		shutil.copy2(p, os.path.join(dirs["originals"], os.path.basename(p)))
+		if save_originals and "originals" in dirs:
+			import shutil
+			shutil.copy2(p, os.path.join(dirs["originals"], os.path.basename(p)))
 
 		# Write masks
 		if save_tr_masks and "tr_masks" in dirs:

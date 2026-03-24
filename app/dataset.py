@@ -4,27 +4,36 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import warnings
+import importlib
 from PIL import Image, ImageFile
 Image.MAX_IMAGE_PIXELS = None  # allow very large images
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 warnings.simplefilter('ignore', Image.DecompressionBombWarning)
 import numpy as np
-from skimage import io as skio
-from skimage.exposure import rescale_intensity
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
 
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
 MASK_EXTS = IMAGE_EXTS
 
 
+def _to_uint8(img: np.ndarray) -> np.ndarray:
+	if img.dtype == np.uint8:
+		return img
+	arr = img.astype(np.float32)
+	mn = float(np.min(arr))
+	mx = float(np.max(arr))
+	if mx <= mn:
+		return np.zeros_like(arr, dtype=np.uint8)
+	arr = (arr - mn) / (mx - mn)
+	return (arr * 255.0).clip(0, 255).astype(np.uint8)
+
+
 def _read_image_gray_any(path: str) -> np.ndarray:
 	# Robust reader for 8/16-bit PNG/JPG/TIFF. Returns uint8 grayscale [0..255]
-	ext = os.path.splitext(path)[1].lower()
-	img = None
+	img: Optional[np.ndarray] = None
 	try:
-		arr = skio.imread(path)
+		with Image.open(path) as im:
+			arr = np.array(im)
 		if arr.ndim == 2:
 			img = arr
 		elif arr.ndim == 3:
@@ -36,24 +45,19 @@ def _read_image_gray_any(path: str) -> np.ndarray:
 			raise ValueError("Unsupported image shape")
 	except Exception:
 		# Fallback to OpenCV
-		bgr = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-		if bgr is None:
+		cimg = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+		if cimg is None:
 			raise
-		if bgr.ndim == 2:
-			img = bgr
-		elif bgr.ndim == 3:
-			means = bgr.reshape(-1, bgr.shape[-1]).mean(axis=0)
+		if cimg.ndim == 2:
+			img = cimg
+		elif cimg.ndim == 3:
+			means = cimg.reshape(-1, cimg.shape[-1]).mean(axis=0)
 			ch = int(np.argmax(means))
-			img = bgr[..., ch]
+			img = cimg[..., ch]
 		else:
 			raise ValueError("Unsupported image shape")
 
-	# Normalize to uint8
-	if img.dtype == np.uint16:
-		img = rescale_intensity(img, out_range=(0, 255)).astype(np.uint8)
-	elif img.dtype != np.uint8:
-		img = rescale_intensity(img, out_range=(0, 255)).astype(np.uint8)
-	return img
+	return _to_uint8(img)
 
 
 def _read_mask_binary(path: str, out_size: Tuple[int, int]) -> np.ndarray:
@@ -127,6 +131,9 @@ class OIRSegmentationDataset:
 			have_ret = base in self.retina_idx
 			if ((not self.require_nv) or have_nv) and ((not self.require_vo) or have_vo) and ((not self.require_retina) or have_ret):
 				self.samples.append(p)
+
+		A = importlib.import_module("albumentations")
+		ToTensorV2 = importlib.import_module("albumentations.pytorch").ToTensorV2
 
 		basic_aug = [
 			A.HorizontalFlip(p=0.5),

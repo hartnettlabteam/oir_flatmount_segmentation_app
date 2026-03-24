@@ -2,9 +2,6 @@ from typing import Dict, Optional, Tuple
 
 import numpy as np
 import cv2
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 
 COLORS = {
@@ -47,6 +44,11 @@ def compare_panel(
 	figsize: Tuple[int, int] = (12, 16),
 	save_path: Optional[str] = None,
 ):
+	# Optional utility for offline analysis; keep runtime deps light for app packaging.
+	matplotlib = __import__("matplotlib")
+	matplotlib.use("Agg")
+	plt = __import__("matplotlib.pyplot", fromlist=["pyplot"])
+
 	# 4 rows x 2 cols: GT on left, Pred on right
 	fig, axes = plt.subplots(4, 2, figsize=figsize)
 

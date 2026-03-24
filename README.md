@@ -4,7 +4,7 @@ Desktop app for OIR flatmount segmentation (TR, IVNV, AVA).
 
 This repository is intended for end users who want a simple GUI workflow:
 
-1. select an input folder,
+1. select an input folder or a single image,
 2. select an output folder,
 3. run segmentation.
 
@@ -23,7 +23,7 @@ Get the latest release assets from GitHub Releases:
 2. Extract the zip.
 3. Open the extracted folder and run `OIR Flatmount Segmentation.exe`.
 4. In the app:
-   - choose input folder,
+   - choose input folder or single image,
    - choose output folder,
    - select desired outputs (masks, overlays, metrics, originals),
    - click `Run`.
@@ -70,4 +70,12 @@ Depending on selected checkboxes in the GUI, outputs include:
 - `AVA masks`
 - `AVA overlays`
 - `metrics.xlsx` (with `ivnv_area`, `ava_area`, and percentage columns)
-- `originals`
+- optional `originals`
+
+## For maintainers (build/release)
+
+- Cross-platform release zips are built by GitHub Actions workflow:
+  - `.github/workflows/build-release-zips.yml`
+- Native Windows binaries are built on `windows-latest`.
+- Workflow downloads `model.pth` assets from this app repo release tag set by `WEIGHTS_RELEASE_TAG`.
+- Technical MONAI bundle files are maintained in a separate MONAI-focused repository.

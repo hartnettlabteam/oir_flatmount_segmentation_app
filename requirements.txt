@@ -3,7 +3,4 @@ pandas
 opencv-python
 torch
 timm
-albumentations
-scikit-image
-matplotlib
 openpyxl

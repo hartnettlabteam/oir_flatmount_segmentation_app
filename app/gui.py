@@ -9,16 +9,14 @@ import tkinter as tk
 from contextlib import redirect_stderr, redirect_stdout
 from tkinter import filedialog, messagebox, scrolledtext
 
-from infer import run_ensemble_folder
-
 
 class ToolTip:
     def __init__(self, widget: tk.Widget, text: str) -> None:
         self.widget = widget
         self.text = text
         self.tipwindow = None
-        self.widget.bind("<Enter>", self._show)
-        self.widget.bind("<Leave>", self._hide)
+        self.widget.bind("<Enter>", self._show, add="+")
+        self.widget.bind("<Leave>", self._hide, add="+")
 
     def _show(self, _event=None) -> None:
         if self.tipwindow is not None:
@@ -137,25 +135,53 @@ class OIRGui(tk.Tk):
 
         outputs_frame = tk.LabelFrame(
             self,
-            text="Output Options",
+            text="",
             bg="#141414",
             fg="#B0B0B0",
             bd=1,
             relief=tk.GROOVE,
             padx=8,
-            pady=8,
+            pady=6,
         )
         outputs_frame.grid(row=2, column=0, columnspan=3, sticky="ew", padx=10, pady=(4, 10))
-        outputs_frame.columnconfigure((0, 1, 2, 3), weight=1)
+        outputs_frame.columnconfigure(0, weight=1)
+        outputs_frame.columnconfigure(1, weight=1)
 
-        info = tk.Label(
-            outputs_frame,
-            text="(i)",
+        header = tk.Frame(outputs_frame, bg="#141414")
+        header.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 2))
+
+        tk.Label(
+            header,
+            text="Output Options",
             bg="#141414",
             fg="#B0B0B0",
+            font=("Helvetica", 11, "bold"),
+        ).pack(side="left")
+
+        info = tk.Canvas(
+            header,
+            width=22,
+            height=22,
+            bg="#141414",
+            highlightthickness=0,
+            bd=0,
             cursor="question_arrow",
         )
-        info.grid(row=0, column=3, sticky="e", padx=6, pady=(0, 4))
+        info.pack(side="left", padx=(8, 0))
+        oval = info.create_oval(2, 2, 20, 20, outline="#707070", width=1.4, fill="#141414")
+        txt = info.create_text(11, 11, text="i", fill="#D0D0D0", font=("Helvetica", 10, "bold"))
+
+        def _info_enter(_event=None):
+            info.itemconfig(oval, outline="#CFCFCF", fill="#262626")
+            info.itemconfig(txt, fill="#FFFFFF")
+
+        def _info_leave(_event=None):
+            info.itemconfig(oval, outline="#707070", fill="#141414")
+            info.itemconfig(txt, fill="#D0D0D0")
+
+        info.bind("<Enter>", _info_enter, add="+")
+        info.bind("<Leave>", _info_leave, add="+")
+
         ToolTip(
             info,
             "Masks: binary black/white segmentation outputs.\n"
@@ -164,14 +190,14 @@ class OIRGui(tk.Tk):
             "Originals: copies of the input images saved in the output folder.",
         )
 
-        tk.Checkbutton(outputs_frame, text="TR masks", variable=self.save_tr_masks, **checkbox_style).grid(row=1, column=0, sticky="w")
-        tk.Checkbutton(outputs_frame, text="TR overlays", variable=self.save_tr_overlays, **checkbox_style).grid(row=1, column=1, sticky="w")
-        tk.Checkbutton(outputs_frame, text="IVNV masks", variable=self.save_ivnv_masks, **checkbox_style).grid(row=2, column=0, sticky="w")
-        tk.Checkbutton(outputs_frame, text="IVNV overlays", variable=self.save_ivnv_overlays, **checkbox_style).grid(row=2, column=1, sticky="w")
-        tk.Checkbutton(outputs_frame, text="AVA masks", variable=self.save_ava_masks, **checkbox_style).grid(row=3, column=0, sticky="w")
-        tk.Checkbutton(outputs_frame, text="AVA overlays", variable=self.save_ava_overlays, **checkbox_style).grid(row=3, column=1, sticky="w")
-        tk.Checkbutton(outputs_frame, text="Metrics spreadsheet", variable=self.save_metrics, **checkbox_style).grid(row=4, column=0, sticky="w")
-        tk.Checkbutton(outputs_frame, text="Originals", variable=self.save_originals, **checkbox_style).grid(row=4, column=1, sticky="w")
+        tk.Checkbutton(outputs_frame, text="TR masks", variable=self.save_tr_masks, **checkbox_style).grid(row=1, column=0, sticky="w", pady=(1, 0))
+        tk.Checkbutton(outputs_frame, text="TR overlays", variable=self.save_tr_overlays, **checkbox_style).grid(row=1, column=1, sticky="w", pady=(1, 0))
+        tk.Checkbutton(outputs_frame, text="IVNV masks", variable=self.save_ivnv_masks, **checkbox_style).grid(row=2, column=0, sticky="w", pady=(1, 0))
+        tk.Checkbutton(outputs_frame, text="IVNV overlays", variable=self.save_ivnv_overlays, **checkbox_style).grid(row=2, column=1, sticky="w", pady=(1, 0))
+        tk.Checkbutton(outputs_frame, text="AVA masks", variable=self.save_ava_masks, **checkbox_style).grid(row=3, column=0, sticky="w", pady=(1, 0))
+        tk.Checkbutton(outputs_frame, text="AVA overlays", variable=self.save_ava_overlays, **checkbox_style).grid(row=3, column=1, sticky="w", pady=(1, 0))
+        tk.Checkbutton(outputs_frame, text="Metrics spreadsheet", variable=self.save_metrics, **checkbox_style).grid(row=4, column=0, sticky="w", pady=(1, 0))
+        tk.Checkbutton(outputs_frame, text="Originals", variable=self.save_originals, **checkbox_style).grid(row=4, column=1, sticky="w", pady=(1, 0))
 
         btn_frame = tk.Frame(self, bg="#141414")
         btn_frame.grid(row=3, column=0, columnspan=3, sticky="ew")
@@ -346,6 +372,9 @@ class OIRGui(tk.Tk):
         save_originals: bool,
     ) -> None:
         try:
+            # Lazy import so GUI can launch even if runtime ML deps are unavailable.
+            from infer import run_ensemble_folder
+
             writer = _QueueWriter(self.log_queue)
             with redirect_stdout(writer), redirect_stderr(writer):
                 run_ensemble_folder(

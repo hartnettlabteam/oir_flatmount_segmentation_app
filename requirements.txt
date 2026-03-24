@@ -1,6 +1,7 @@
-numpy
-pandas
-opencv-python
-torch
-timm
-openpyxl
+numpy==1.26.4
+pandas==2.2.3
+opencv-python==4.10.0.84
+torch==2.7.1
+timm==1.0.15
+openpyxl==3.1.5
+pillow==10.4.0

@@ -8,6 +8,7 @@ This repository is intended for end users who want a simple GUI workflow:
 2. select an output folder,
 3. run segmentation.
 
+No model-path setup is required in the GUI. Release builds bundle all required ensemble weights.
 
 ## Download
 
@@ -44,7 +45,7 @@ xattr -dr com.apple.quarantine "/Applications/OIR Flatmount Segmentation.app"
 
 Then open again.
 
-## macOS Fallback
+## macOS Fallback (no Apple license required)
 
 If the unsigned app is blocked on your macOS version, run from source:
 
@@ -55,6 +56,9 @@ pip install --upgrade pip
 pip install --no-compile -r requirements.txt
 python app/gui.py
 ```
+
+This does not require an Apple Developer account.
+The pinned dependency versions in `requirements.txt` are selected for broader macOS compatibility.
 
 ## Output files
 
@@ -67,4 +71,13 @@ Depending on selected checkboxes in the GUI, outputs include:
 - `AVA masks`
 - `AVA overlays`
 - `metrics.xlsx` (with `ivnv_area`, `ava_area`, and percentage columns)
-- `originals`
+- optional `originals`
+
+## For maintainers (build/release)
+
+- Cross-platform release zips are built by GitHub Actions workflow:
+  - `.github/workflows/build-release-zips.yml`
+- macOS releases are built on `macos-14` with `MACOSX_DEPLOYMENT_TARGET=13.0` to improve compatibility with older macOS patch versions.
+- Native Windows binaries are built on `windows-latest`.
+- Workflow downloads `model.pth` assets from this app repo release tag set by `WEIGHTS_RELEASE_TAG`.
+- Technical MONAI bundle files are maintained in a separate MONAI-focused repository.

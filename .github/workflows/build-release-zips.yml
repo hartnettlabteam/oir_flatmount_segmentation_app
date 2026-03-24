@@ -1,0 +1,92 @@
+name: Build Release Zips
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+env:
+  WEIGHTS_RELEASE_TAG: v1.0.0
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - name: Download ensemble model weights
+        run: |
+          WEIGHTS_BASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ env.WEIGHTS_RELEASE_TAG }}"
+          mkdir -p weights/fold_0 weights/fold_1 weights/fold_2 weights/fold_3 weights/fold_4
+          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_0_model.pth" -o "weights/fold_0/model.pth"
+          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_1_model.pth" -o "weights/fold_1/model.pth"
+          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_2_model.pth" -o "weights/fold_2/model.pth"
+          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_3_model.pth" -o "weights/fold_3/model.pth"
+          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_4_model.pth" -o "weights/fold_4/model.pth"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-compile -r requirements.txt
+          pip install pyinstaller
+      - name: Build macOS app
+        run: pyinstaller -y --windowed --name "OIR Flatmount Segmentation" app/gui.py
+      - name: Bundle weights into macOS app
+        run: |
+          mkdir -p "dist/OIR Flatmount Segmentation.app/Contents/Resources/weights"
+          cp -R weights/fold_* "dist/OIR Flatmount Segmentation.app/Contents/Resources/weights/"
+      - name: Package macOS zip
+        run: |
+          cd dist
+          ditto -c -k --sequesterRsrc --keepParent "OIR Flatmount Segmentation.app" "OIR-Flatmount-Segmentation-macOS-app.zip"
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: OIR-Flatmount-Segmentation-macOS-app
+          path: dist/OIR-Flatmount-Segmentation-macOS-app.zip
+      - name: Attach macOS zip to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/OIR-Flatmount-Segmentation-macOS-app.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - name: Download ensemble model weights
+        run: |
+          $weightsBaseUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:WEIGHTS_RELEASE_TAG"
+          New-Item -ItemType Directory -Path "weights/fold_0","weights/fold_1","weights/fold_2","weights/fold_3","weights/fold_4" -Force | Out-Null
+          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_0_model.pth" -OutFile "weights/fold_0/model.pth"
+          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_1_model.pth" -OutFile "weights/fold_1/model.pth"
+          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_2_model.pth" -OutFile "weights/fold_2/model.pth"
+          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_3_model.pth" -OutFile "weights/fold_3/model.pth"
+          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_4_model.pth" -OutFile "weights/fold_4/model.pth"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-compile -r requirements.txt
+          pip install pyinstaller
+      - name: Build Windows app
+        run: pyinstaller -y --windowed --name "OIR Flatmount Segmentation" app/gui.py
+      - name: Bundle weights into Windows app folder
+        run: |
+          New-Item -ItemType Directory -Path "dist/OIR Flatmount Segmentation/weights" -Force | Out-Null
+          Copy-Item -Path "weights/fold_*" -Destination "dist/OIR Flatmount Segmentation/weights/" -Recurse -Force
+      - name: Package Windows zip
+        run: Compress-Archive -Path "dist/OIR Flatmount Segmentation/*" -DestinationPath "dist/OIR-Flatmount-Segmentation-Windows.zip" -Force
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: OIR-Flatmount-Segmentation-Windows
+          path: dist/OIR-Flatmount-Segmentation-Windows.zip
+      - name: Attach Windows zip to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/OIR-Flatmount-Segmentation-Windows.zip

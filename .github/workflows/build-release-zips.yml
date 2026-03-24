@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
+
       - name: Download ensemble model weights
         env:
           GH_TOKEN: ${{ github.token }}
@@ -33,26 +34,32 @@ jobs:
             mv "weights/fold_${i}/${asset}" "weights/fold_${i}/model.pth"
             test -s "weights/fold_${i}/model.pth"
           done
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --no-compile -r requirements.txt
           pip install pyinstaller
+
       - name: Build macOS app
         run: pyinstaller -y --windowed --name "OIR Flatmount Segmentation" app/gui.py
+
       - name: Bundle weights into macOS app
         run: |
           mkdir -p "dist/OIR Flatmount Segmentation.app/Contents/Resources/weights"
           cp -R weights/fold_* "dist/OIR Flatmount Segmentation.app/Contents/Resources/weights/"
+
       - name: Package macOS zip
         run: |
           cd dist
           ditto -c -k --sequesterRsrc --keepParent "OIR Flatmount Segmentation.app" "OIR-Flatmount-Segmentation-macOS-app.zip"
+
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v5
         with:
           name: OIR-Flatmount-Segmentation-macOS-app
           path: dist/OIR-Flatmount-Segmentation-macOS-app.zip
+
       - name: Attach macOS zip to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
@@ -66,6 +73,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
+
       - name: Download ensemble model weights
         env:
           GH_TOKEN: ${{ github.token }}
@@ -77,24 +85,30 @@ jobs:
             Move-Item -Path "weights/fold_$i/$asset" -Destination "weights/fold_$i/model.pth" -Force
             if (!(Test-Path "weights/fold_$i/model.pth")) { throw "Missing weights/fold_$i/model.pth" }
           }
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --no-compile -r requirements.txt
           pip install pyinstaller
+
       - name: Build Windows app
         run: pyinstaller -y --windowed --name "OIR Flatmount Segmentation" app/gui.py
+
       - name: Bundle weights into Windows app folder
         run: |
           New-Item -ItemType Directory -Path "dist/OIR Flatmount Segmentation/weights" -Force | Out-Null
           Copy-Item -Path "weights/fold_*" -Destination "dist/OIR Flatmount Segmentation/weights/" -Recurse -Force
+
       - name: Package Windows zip
         run: Compress-Archive -Path "dist/OIR Flatmount Segmentation/*" -DestinationPath "dist/OIR-Flatmount-Segmentation-Windows.zip" -Force
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v5
         with:
           name: OIR-Flatmount-Segmentation-Windows
           path: dist/OIR-Flatmount-Segmentation-Windows.zip
+
       - name: Attach Windows zip to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2

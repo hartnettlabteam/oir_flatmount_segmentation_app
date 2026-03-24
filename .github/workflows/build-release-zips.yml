@@ -5,6 +5,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 env:
   WEIGHTS_RELEASE_TAG: v1.0.0
 
@@ -17,14 +20,19 @@ jobs:
         with:
           python-version: "3.10"
       - name: Download ensemble model weights
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          WEIGHTS_BASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ env.WEIGHTS_RELEASE_TAG }}"
-          mkdir -p weights/fold_0 weights/fold_1 weights/fold_2 weights/fold_3 weights/fold_4
-          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_0_model.pth" -o "weights/fold_0/model.pth"
-          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_1_model.pth" -o "weights/fold_1/model.pth"
-          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_2_model.pth" -o "weights/fold_2/model.pth"
-          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_3_model.pth" -o "weights/fold_3/model.pth"
-          curl -fL "${WEIGHTS_BASE_URL}/oir_flatmount_segmentation_fold_4_model.pth" -o "weights/fold_4/model.pth"
+          for i in 0 1 2 3 4; do
+            mkdir -p "weights/fold_${i}"
+            asset="oir_flatmount_segmentation_fold_${i}_model.pth"
+            gh release download "${WEIGHTS_RELEASE_TAG}" \
+              --repo "${GITHUB_REPOSITORY}" \
+              --pattern "${asset}" \
+              --dir "weights/fold_${i}"
+            mv "weights/fold_${i}/${asset}" "weights/fold_${i}/model.pth"
+            test -s "weights/fold_${i}/model.pth"
+          done
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -59,14 +67,16 @@ jobs:
         with:
           python-version: "3.10"
       - name: Download ensemble model weights
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          $weightsBaseUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:WEIGHTS_RELEASE_TAG"
-          New-Item -ItemType Directory -Path "weights/fold_0","weights/fold_1","weights/fold_2","weights/fold_3","weights/fold_4" -Force | Out-Null
-          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_0_model.pth" -OutFile "weights/fold_0/model.pth"
-          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_1_model.pth" -OutFile "weights/fold_1/model.pth"
-          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_2_model.pth" -OutFile "weights/fold_2/model.pth"
-          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_3_model.pth" -OutFile "weights/fold_3/model.pth"
-          Invoke-WebRequest "$weightsBaseUrl/oir_flatmount_segmentation_fold_4_model.pth" -OutFile "weights/fold_4/model.pth"
+          for ($i = 0; $i -lt 5; $i++) {
+            New-Item -ItemType Directory -Path "weights/fold_$i" -Force | Out-Null
+            $asset = "oir_flatmount_segmentation_fold_${i}_model.pth"
+            gh release download "$env:WEIGHTS_RELEASE_TAG" --repo "$env:GITHUB_REPOSITORY" --pattern "$asset" --dir "weights/fold_$i"
+            Move-Item -Path "weights/fold_$i/$asset" -Destination "weights/fold_$i/model.pth" -Force
+            if (!(Test-Path "weights/fold_$i/model.pth")) { throw "Missing weights/fold_$i/model.pth" }
+          }
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

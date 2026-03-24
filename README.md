@@ -70,4 +70,4 @@ Depending on selected checkboxes in the GUI, outputs include:
 - `AVA masks`
 - `AVA overlays`
 - `metrics.xlsx` (with `ivnv_area`, `ava_area`, and percentage columns)
-- optional `originals`
+- `originals`

@@ -42,7 +42,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build macOS app
-        run: pyinstaller -y --windowed --name "OIR Flatmount Segmentation" app/gui.py
+        run: pyinstaller -y --clean --windowed --name "OIR Flatmount Segmentation" --exclude-module matplotlib --exclude-module albumentations --exclude-module skimage app/gui.py
 
       - name: Bundle weights into macOS app
         run: |
@@ -93,7 +93,7 @@ jobs:
           pip install pyinstaller
 
       - name: Build Windows app
-        run: pyinstaller -y --windowed --name "OIR Flatmount Segmentation" app/gui.py
+        run: pyinstaller -y --clean --windowed --name "OIR Flatmount Segmentation" --exclude-module matplotlib --exclude-module albumentations --exclude-module skimage app/gui.py
 
       - name: Bundle weights into Windows app folder
         run: |

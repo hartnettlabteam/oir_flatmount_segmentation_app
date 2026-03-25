@@ -67,3 +67,13 @@ Depending on selected checkboxes in the GUI, outputs include:
 - `AVA overlays`
 - `metrics.xlsx` (with `ivnv_area`, `ava_area`, and percentage columns)
 - `originals`
+
+## Citation and Contact
+
+If you use this model, please cite the associated Hartnett Lab manuscript and repository release.
+
+Contact:
+- Neal Shah: neals1@stanford.edu
+- Aniket Ramshekar: aniket.ramshekar@stanford.edu
+- M. Elizabeth Hartnett: me.hartnett@stanford.edu
+

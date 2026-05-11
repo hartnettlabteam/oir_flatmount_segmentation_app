@@ -295,11 +295,11 @@ def run_folder(
 
 		records.append({
 			"file": name,
-			"retina_area": area_retina,
+			"total_retina_area": area_retina,
 			"ivnv_area": area_nv,
 			"ava_area": area_vo,
-			"ivnv_pct_of_retina": ratio_nv,
-			"ava_pct_of_retina": ratio_vo,
+			"ivnv_pct_of_total_retina": ratio_nv,
+			"ava_pct_of_total_retina": ratio_vo,
 		})
 
 	df = pd.DataFrame.from_records(records)
@@ -359,7 +359,7 @@ def run_ensemble_folder(
 
 	# Average thresholds across folds for ensemble
 	avg_thr = np.mean(thresholds_list, axis=0).tolist()
-	print(f"Ensemble thresholds (averaged): R={avg_thr[0]:.2f}, NV={avg_thr[1]:.2f}, VO={avg_thr[2]:.2f}")
+	print(f"Ensemble thresholds (averaged): total_retina={avg_thr[0]:.2f}, IVNV={avg_thr[1]:.2f}, AVA={avg_thr[2]:.2f}")
 
 	# Create output directories
 	os.makedirs(output_dir, exist_ok=True)
@@ -467,11 +467,11 @@ def run_ensemble_folder(
 		if save_metrics:
 			records.append({
 				"file": name,
-				"retina_area": area_retina,
+				"total_retina_area": area_retina,
 				"ivnv_area": area_nv,
 				"ava_area": area_vo,
-				"ivnv_pct_of_retina": ratio_nv,
-				"ava_pct_of_retina": ratio_vo,
+				"ivnv_pct_of_total_retina": ratio_nv,
+				"ava_pct_of_total_retina": ratio_vo,
 			})
 
 	if save_metrics:

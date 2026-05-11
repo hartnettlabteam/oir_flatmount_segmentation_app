@@ -37,7 +37,6 @@ def _read_image_gray_any(path: str) -> np.ndarray:
 		if arr.ndim == 2:
 			img = arr
 		elif arr.ndim == 3:
-			# Choose the strongest channel akin to Lua pipeline
 			ch_means = arr.reshape(-1, arr.shape[-1]).mean(axis=0)
 			ch = int(np.argmax(ch_means))
 			img = arr[..., ch]

@@ -10,21 +10,30 @@ This repository is intended for end users who want a simple GUI workflow:
 
 ## Download
 
-Get the latest release assets from GitHub Releases:
-
-- Windows: `OIR-Flatmount-Segmentation-Windows.zip`
+- Windows installer (recommended): `OIR-Flatmount-Segmentation-Windows-Setup.exe`
+- Windows portable zip: `OIR-Flatmount-Segmentation-Windows.zip`
 - macOS: `OIR-Flatmount-Segmentation-macOS-app.zip` (unsigned)
 
-## Windows Quick Start (recommended)
+## Windows Quick Start (recommended — installer)
 
-1. Download `OIR-Flatmount-Segmentation-Windows.zip`.
-2. Extract the zip.
-3. Open the extracted folder and run `OIR Flatmount Segmentation.exe`.
+1. Download `OIR-Flatmount-Segmentation-Windows-Setup.exe`.
+2. Run it and step through the wizard. You can optionally create a Start Menu shortcut and a Desktop shortcut on the "Select Additional Tasks" page.
+3. Launch the app from the Start Menu or Desktop shortcut.
 4. In the app:
    - choose input folder or single image,
    - choose output folder,
    - select desired outputs (masks, overlays, metrics, originals),
    - click `Run`.
+
+To remove the app later, use `Settings -> Apps` (or `Add or Remove Programs`) and uninstall "OIR Flatmount Segmentation".
+
+## Windows Quick Start (portable zip)
+
+If you cannot install software, use the portable zip instead:
+
+1. Download `OIR-Flatmount-Segmentation-Windows.zip`.
+2. Extract the zip anywhere.
+3. Open the extracted folder and run `OIR Flatmount Segmentation.exe`.
 
 ## macOS Quick Start (unsigned app)
 

@@ -9,6 +9,7 @@ permissions:
   contents: write
 
 env:
+  WEIGHTS_RELEASE_REPO: hartnettlabteam/oir_flatmount_segmentation
   WEIGHTS_RELEASE_TAG: v1.0.0
   MACOSX_DEPLOYMENT_TARGET: "13.0"
 
@@ -28,7 +29,7 @@ jobs:
             mkdir -p "weights/fold_${i}"
             asset="oir_flatmount_segmentation_fold_${i}_model.pth"
             gh release download "${WEIGHTS_RELEASE_TAG}" \
-              --repo "${GITHUB_REPOSITORY}" \
+              --repo "${WEIGHTS_RELEASE_REPO}" \
               --pattern "${asset}" \
               --dir "weights/fold_${i}"
             mv "weights/fold_${i}/${asset}" "weights/fold_${i}/model.pth"
@@ -76,7 +77,7 @@ jobs:
           for ($i = 0; $i -lt 5; $i++) {
             New-Item -ItemType Directory -Path "weights/fold_$i" -Force | Out-Null
             $asset = "oir_flatmount_segmentation_fold_${i}_model.pth"
-            gh release download "$env:WEIGHTS_RELEASE_TAG" --repo "$env:GITHUB_REPOSITORY" --pattern "$asset" --dir "weights/fold_$i"
+            gh release download "$env:WEIGHTS_RELEASE_TAG" --repo "$env:WEIGHTS_RELEASE_REPO" --pattern "$asset" --dir "weights/fold_$i"
             Move-Item -Path "weights/fold_$i/$asset" -Destination "weights/fold_$i/model.pth" -Force
             if (!(Test-Path "weights/fold_$i/model.pth")) { throw "Missing weights/fold_$i/model.pth" }
           }

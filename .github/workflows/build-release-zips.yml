@@ -93,13 +93,26 @@ jobs:
           Copy-Item -Path "weights/fold_*" -Destination "dist/OIR Flatmount Segmentation/weights/" -Recurse -Force
       - name: Package Windows zip
         run: Compress-Archive -Path "dist/OIR Flatmount Segmentation/*" -DestinationPath "dist/OIR-Flatmount-Segmentation-Windows.zip" -Force
-      - name: Upload Windows artifact
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build Windows installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\oir_app.iss
+          if (!(Test-Path "dist\OIR-Flatmount-Segmentation-Windows-Setup.exe")) { throw "Installer build failed" }
+      - name: Upload Windows zip artifact
         uses: actions/upload-artifact@v5
         with:
           name: OIR-Flatmount-Segmentation-Windows
           path: dist/OIR-Flatmount-Segmentation-Windows.zip
-      - name: Attach Windows zip to release
+      - name: Upload Windows installer artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: OIR-Flatmount-Segmentation-Windows-Setup
+          path: dist/OIR-Flatmount-Segmentation-Windows-Setup.exe
+      - name: Attach Windows assets to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/OIR-Flatmount-Segmentation-Windows.zip
+          files: |
+            dist/OIR-Flatmount-Segmentation-Windows.zip
+            dist/OIR-Flatmount-Segmentation-Windows-Setup.exe

@@ -79,7 +79,7 @@ Depending on selected checkboxes in the GUI, outputs include:
 
 ## Citation and Contact
 
-If you use this model, please cite the associated Hartnett Lab [TVST manuscript.](https://iovs.arvojournals.org/article.aspx?articleid=2817567)
+If you use this model, please cite the associated Hartnett Lab [TVST manuscript.](https://tvst.arvojournals.org/article.aspx?articleid=2817982)
 
 "Shah NS, Ramshekar A, Asare-Bediako B, Tankersley MP, Huang HC, Beri S, Kunz E, Lee AY, Hartnett ME. Automated Deep Learning Quantification of Avascular Area and Intravitreal Neovascularization in Retinal Flatmounts of Rodent Oxygen-Induced Retinopathy Models. Transl Vis Sci Technol. 2026 Jun 1;15(6):41. doi: 10.1167/tvst.15.6.41. PMID: 42376996."
 

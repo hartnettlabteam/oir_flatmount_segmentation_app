@@ -81,7 +81,7 @@ Depending on selected checkboxes in the GUI, outputs include:
 
 If you use this model, please cite the associated Hartnett Lab [TVST manuscript.](https://iovs.arvojournals.org/article.aspx?articleid=2817567)
 
-"Shah, N.S., Ramshekar, A., Asare-Bediako, B., Tankersley, M., Randolph, J.W., Whitney, J. and Hartnett, M.E., 2026. AI-Assisted Quantification of Retinal Vascular Parameters in Oxygen-Induced Retinopathy Models: A U-Net Approach. Investigative Ophthalmology & Visual Science, 67(7), pp.5204-5204."
+"Shah NS, Ramshekar A, Asare-Bediako B, Tankersley MP, Huang HC, Beri S, Kunz E, Lee AY, Hartnett ME. Automated Deep Learning Quantification of Avascular Area and Intravitreal Neovascularization in Retinal Flatmounts of Rodent Oxygen-Induced Retinopathy Models. Transl Vis Sci Technol. 2026 Jun 1;15(6):41. doi: 10.1167/tvst.15.6.41. PMID: 42376996."
 
 Contact:
 - Neal Shah: neals1@stanford.edu

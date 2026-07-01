@@ -16,7 +16,7 @@ This repository is intended for end users who want a simple GUI workflow:
 
 ## Windows Quick Start (recommended — installer)
 
-1. Download `OIR-Flatmount-Segmentation-Windows-Setup.exe`. You can find this in the [Releases](https://github.com/hartnettlabteam/oir_flatmount_segmentation_app/releases)
+1. Download `OIR-Flatmount-Segmentation-Windows-Setup.exe`. You can find this in the [Releases.](https://github.com/hartnettlabteam/oir_flatmount_segmentation_app/releases)
 2. Run it and step through the wizard. You can optionally create a Start Menu shortcut and a Desktop shortcut on the "Select Additional Tasks" page.
 3. Launch the app from the Start Menu or Desktop shortcut.
 4. In the app:
